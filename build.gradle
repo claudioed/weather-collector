@@ -1,0 +1,77 @@
+group 'com.claudioliveira'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext.kotlin_version = '1.0.6'
+    ext.springBootVersion = "1.4.3.RELEASE"
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
+        classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlin_version")
+        classpath("org.jetbrains.kotlin:kotlin-allopen:$kotlin_version")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+        classpath('se.transmode.gradle:gradle-docker:1.2')
+    }
+
+}
+
+apply {
+    plugin("kotlin")
+    plugin("kotlin-spring")
+    plugin("spring-boot")
+    plugin('docker')
+}
+
+bootRepackage.enabled = false
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+jar {
+    baseName = 'spring-kotlin'
+    version = 1.0
+    manifest {
+        attributes 'Main-Class': "demo.KotlinApplication"
+    }
+}
+
+task buildDocker(type: Docker, dependsOn: build) {
+    push = false
+    applicationName = jar.baseName
+    dockerfile = file('src/main/docker/Dockerfile')
+    doFirst {
+        copy {
+            from jar
+            into stageDir
+        }
+    }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-undertow")
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    compile("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+    compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.8.4")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    compile ("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    compile ("com.github.kittinunf.fuel:fuel:1.4.0")
+}
+
+sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+}
