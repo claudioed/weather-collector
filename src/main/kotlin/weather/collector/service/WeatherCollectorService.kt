@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
  * @email claudioed.oliveira@gmail.com
  */
 @Service
-class WeatherCollectorService {
+class WeatherCollectorService(val sender: RabbitSender) {
 
     val mapper: ObjectMapper = ObjectMapper().registerKotlinModule().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
@@ -22,7 +22,7 @@ class WeatherCollectorService {
 
     val WEATHER_API_KEY = System.getenv()["WEATHER_API_KEY"]
 
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 5000)
     fun collect(): Unit {
 
         interestedCities.forEach { (getData(it)) }
@@ -36,7 +36,7 @@ class WeatherCollectorService {
                 }
                 is Result.Success -> {
                     val data = mapper.readValue(result.get(), Data::class.java)
-                    println(data)
+                    sender.send(data)
                 }
             }
         }
